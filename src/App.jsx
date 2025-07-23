@@ -9,7 +9,7 @@ import FAQPage from './pages/FAQPage'
 import { Toaster } from 'sonner'
 import './App.css'
 
-const API_BASE_URL = '/api'
+const API_BASE_URL = 'https://qjh9iec518nl.manus.space/api'
 
 function App() {
   const [categories, setCategories] = useState([])
