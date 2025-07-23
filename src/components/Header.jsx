@@ -7,18 +7,41 @@ const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
   const [headerSettings, setHeaderSettings] = useState({
+    header_newsbar_enabled: 'true',
+    header_newsbar_text: 'News, promotions, coupons, announcements are published on our news site - accsmarket.news',
+    header_newsbar_bg_color: '#22c55e',
+    header_newsbar_text_color: '#ffffff',
+    header_newsbar_url: 'accsmarket.news',
     header_logo_url: '',
     header_logo_alt: 'AccsMarket',
+    header_logo_text: 'ACCS',
+    header_logo_suffix: 'market.com',
     navigation_menu: '[]',
     search_placeholder: 'Search for accounts',
-    search_enabled: 'true'
+    search_enabled: 'true',
+    search_advanced_enabled: 'true'
   })
   const [menuItems, setMenuItems] = useState([])
+  const [dynamicPages, setDynamicPages] = useState([])
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     loadHeaderSettings()
+    loadDynamicPages()
   }, [])
+
+  const loadDynamicPages = async () => {
+    try {
+      const response = await fetch('/api/pages/active')
+      const data = await response.json()
+      
+      if (data.success) {
+        setDynamicPages(data.data)
+      }
+    } catch (error) {
+      console.error('Error loading dynamic pages:', error)
+    }
+  }
 
   const loadHeaderSettings = async () => {
     try {
@@ -67,27 +90,40 @@ const Header = () => {
 
   return (
     <header className="bg-gray-800 text-white">
-      {/* Top Bar */}
-      <div className="bg-gray-700 px-4 py-2">
-        <div className="max-w-7xl mx-auto flex justify-between items-center text-sm">
-          <div className="flex items-center space-x-4">
-            <a href="#" className="text-green-400 hover:text-green-300 transition-colors">
-              📰 News
-            </a>
-            <span className="text-gray-300">
-              News, promotions, coupons, announcements are published on our news site - accsmarket.news
-            </span>
-          </div>
-          <div className="flex items-center space-x-4">
-            <a href="#" className="hover:text-green-400 transition-colors">+ Sign Up</a>
-            <a href="#" className="hover:text-green-400 transition-colors">🔐 Login</a>
-            <div className="flex items-center space-x-2">
-              <span className="text-gray-300">🇬🇧 Eng</span>
-              <span className="text-gray-300">🇷🇺 Рус</span>
+      {/* Top Bar - News Bar */}
+      {headerSettings.header_newsbar_enabled === 'true' && (
+        <div 
+          className="px-4 py-2"
+          style={{
+            backgroundColor: headerSettings.header_newsbar_bg_color,
+            color: headerSettings.header_newsbar_text_color
+          }}
+        >
+          <div className="max-w-7xl mx-auto flex justify-between items-center text-sm">
+            <div className="flex items-center space-x-4">
+              <a 
+                href={`https://${headerSettings.header_newsbar_url}`} 
+                className="hover:opacity-80 transition-opacity"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                📰 News
+              </a>
+              <span>
+                {headerSettings.header_newsbar_text}
+              </span>
+            </div>
+            <div className="flex items-center space-x-4">
+              <a href="#" className="hover:opacity-80 transition-opacity">+ Sign Up</a>
+              <a href="#" className="hover:opacity-80 transition-opacity">🔐 Login</a>
+              <div className="flex items-center space-x-2">
+                <span>🇬🇧 Eng</span>
+                <span>🇷🇺 Рус</span>
+              </div>
             </div>
           </div>
         </div>
-      </div>
+      )}
 
       {/* Main Header */}
       <div className="px-4 py-4">
@@ -104,9 +140,9 @@ const Header = () => {
               ) : (
                 <div className="flex items-center">
                   <div className="bg-red-600 text-white px-3 py-2 rounded font-bold text-xl">
-                    ACCS
+                    {headerSettings.header_logo_text}
                   </div>
-                  <span className="ml-2 text-xl font-semibold">market.com</span>
+                  <span className="ml-2 text-xl font-semibold">{headerSettings.header_logo_suffix}</span>
                 </div>
               )}
             </div>
@@ -115,7 +151,7 @@ const Header = () => {
             <nav className="hidden md:flex items-center space-x-6">
               <a href="#" className="hover:text-green-400 transition-colors">🎫 New ticket / Ask a question</a>
               
-              {/* Dynamic Menu Items */}
+              {/* Static Menu Items */}
               {menuItems.map((item, index) => (
                 <a 
                   key={index}
@@ -123,6 +159,17 @@ const Header = () => {
                   className="hover:text-green-400 transition-colors"
                 >
                   {item.label}
+                </a>
+              ))}
+              
+              {/* Dynamic Pages */}
+              {dynamicPages.map((page) => (
+                <a 
+                  key={page.id}
+                  href={`/${page.slug}`} 
+                  className="hover:text-green-400 transition-colors"
+                >
+                  {page.title}
                 </a>
               ))}
               
@@ -140,7 +187,7 @@ const Header = () => {
               </a>
               
               {/* Admin Link */}
-              <a href="/admin" className="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded transition-colors">
+              <a href="/admin-panel" className="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded transition-colors">
                 ⚙️ Admin
               </a>
             </nav>
@@ -180,9 +227,11 @@ const Header = () => {
                 <Search className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
               </div>
               
-              <Button className="bg-green-600 hover:bg-green-700 text-white">
-                🔍 Advanced search
-              </Button>
+              {headerSettings.search_advanced_enabled === 'true' && (
+                <Button className="bg-green-600 hover:bg-green-700 text-white">
+                  🔍 Advanced search
+                </Button>
+              )}
             </div>
           )}
         </div>
@@ -194,7 +243,7 @@ const Header = () => {
           <nav className="flex flex-col space-y-3">
             <a href="#" className="hover:text-green-400 transition-colors">🎫 New ticket / Ask a question</a>
             
-            {/* Dynamic Menu Items for Mobile */}
+            {/* Static Menu Items for Mobile */}
             {menuItems.map((item, index) => (
               <a 
                 key={index}
@@ -205,11 +254,22 @@ const Header = () => {
               </a>
             ))}
             
+            {/* Dynamic Pages for Mobile */}
+            {dynamicPages.map((page) => (
+              <a 
+                key={page.id}
+                href={`/${page.slug}`} 
+                className="hover:text-green-400 transition-colors"
+              >
+                {page.title}
+              </a>
+            ))}
+            
             <a href="#" className="hover:text-green-400 transition-colors">Useful information</a>
             <a href="#" className="bg-purple-600 hover:bg-purple-700 px-4 py-2 rounded transition-colors text-center">
               🌟 Become a seller
             </a>
-            <a href="/admin" className="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded transition-colors text-center">
+            <a href="/admin-panel" className="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded transition-colors text-center">
               ⚙️ Admin
             </a>
           </nav>

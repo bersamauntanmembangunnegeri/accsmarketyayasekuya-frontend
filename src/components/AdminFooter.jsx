@@ -49,18 +49,39 @@ const AdminFooter = () => {
       const data = await response.json();
       
       if (data.success) {
-        setFooterSettings(data.data);
+        // Map backend field names to frontend state
+        const mappedSettings = {
+          company_name: data.data.footer_company_name || 'ACCS market.com',
+          company_description: data.data.footer_company_description || 'Buy or Sell Social Media Accounts (PVA & Cheap). Your trusted marketplace for social media accounts.',
+          logo_text: data.data.footer_logo_text || 'ACCS',
+          logo_suffix: data.data.footer_logo_suffix || 'market.com',
+          social_link_1: data.data.footer_social_link_1 || '',
+          social_link_1_icon: 'Globe',
+          social_link_2: data.data.footer_social_link_2 || '',
+          social_link_2_icon: 'Mail',
+          social_link_3: data.data.footer_social_link_3 || '',
+          social_link_3_icon: 'MessageCircle',
+          contact_email: data.data.footer_contact_email || 'support@accsmarket.com',
+          contact_website: data.data.footer_contact_website || 'accsmarket.news',
+          support_text: data.data.footer_contact_support_text || '24/7 Support Available',
+          security_text: data.data.footer_contact_security_text || 'Secure Transactions',
+          copyright_text: data.data.footer_copyright_text || '© 2024 AccsMarket.com. All rights reserved.',
+          background_color: 'bg-gray-800',
+          text_color: 'text-white'
+        };
+        
+        setFooterSettings(mappedSettings);
         
         // Parse JSON strings
         try {
-          setQuickLinks(JSON.parse(data.data.quick_links || '[]'));
-          setSupportLinks(JSON.parse(data.data.support_links || '[]'));
-          setPaymentMethods(JSON.parse(data.data.payment_methods || '[]'));
+          setQuickLinks(JSON.parse(data.data.footer_quick_links || '[]'));
+          setSupportLinks(JSON.parse(data.data.footer_support_links || '[]'));
+          setPaymentMethods(JSON.parse(data.data.footer_payment_methods || '["BTC", "USDT", "ETH", "PayPal"]'));
         } catch (e) {
           console.error('Error parsing JSON:', e);
           setQuickLinks([]);
           setSupportLinks([]);
-          setPaymentMethods([]);
+          setPaymentMethods(['BTC', 'USDT', 'ETH', 'PayPal']);
         }
       } else {
         toast.error('Failed to load footer settings');
@@ -76,17 +97,32 @@ const AdminFooter = () => {
   const saveFooterSettings = async () => {
     try {
       setLoading(true);
+      
+      // Map frontend state to backend field names
+      const backendData = {
+        footer_logo_text: footerSettings.logo_text,
+        footer_logo_suffix: footerSettings.logo_suffix,
+        footer_company_name: footerSettings.company_name,
+        footer_company_description: footerSettings.company_description,
+        footer_social_link_1: footerSettings.social_link_1,
+        footer_social_link_2: footerSettings.social_link_2,
+        footer_social_link_3: footerSettings.social_link_3,
+        footer_quick_links: JSON.stringify(quickLinks),
+        footer_support_links: JSON.stringify(supportLinks),
+        footer_contact_email: footerSettings.contact_email,
+        footer_contact_website: footerSettings.contact_website,
+        footer_contact_support_text: footerSettings.support_text,
+        footer_contact_security_text: footerSettings.security_text,
+        footer_copyright_text: footerSettings.copyright_text,
+        footer_payment_methods: JSON.stringify(paymentMethods)
+      };
+      
       const response = await fetch('/api/admin/footer', {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          ...footerSettings,
-          quick_links: quickLinks,
-          support_links: supportLinks,
-          payment_methods: paymentMethods
-        }),
+        body: JSON.stringify(backendData),
       });
       
       const data = await response.json();

@@ -1,6 +1,6 @@
 import React from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import AdminOrders from '../components/AdminOrders';
+import AdminPages from '../components/AdminPages';
 import AdminFooter from '../components/AdminFooter';
 import AdminHeader from '../components/AdminHeader';
 
@@ -12,15 +12,15 @@ const AdminPage = () => {
         <p className="text-gray-600 mt-2">Manage your website content and settings</p>
       </div>
 
-      <Tabs defaultValue="orders" className="space-y-6">
+      <Tabs defaultValue="pages" className="space-y-6">
         <TabsList className="grid w-full grid-cols-3">
-          <TabsTrigger value="orders">Orders</TabsTrigger>
+          <TabsTrigger value="pages">Pages</TabsTrigger>
           <TabsTrigger value="footer">Footer</TabsTrigger>
           <TabsTrigger value="header">Header</TabsTrigger>
         </TabsList>
 
-        <TabsContent value="orders" className="space-y-6">
-          <AdminOrders />
+        <TabsContent value="pages" className="space-y-6">
+          <AdminPages />
         </TabsContent>
 
         <TabsContent value="footer" className="space-y-6">

@@ -8,6 +8,7 @@ import { Badge } from './ui/badge';
 import { Textarea } from './ui/textarea';
 import { Switch } from './ui/switch';
 import { Trash2, Plus, RefreshCw, Save } from 'lucide-react';
+import { toast } from 'sonner';
 
 const AdminHeader = () => {
   const [headerData, setHeaderData] = useState({
@@ -19,7 +20,7 @@ const AdminHeader = () => {
       newsUrl: 'accsmarket.news'
     },
     logo: {
-      url: 'https://example.com/logo.png',
+      url: '',
       altText: 'AccsMarket',
       logoText: 'ACCS',
       logoSuffix: 'market.com'
@@ -43,12 +44,42 @@ const AdminHeader = () => {
     setLoading(true);
     try {
       const response = await fetch('/api/admin/header');
-      if (response.ok) {
-        const data = await response.json();
-        setHeaderData(data);
+      const data = await response.json();
+      
+      if (data.success) {
+        // Map backend data to frontend structure
+        const backendData = data.data;
+        
+        const mappedData = {
+          newsBar: {
+            enabled: backendData.header_newsbar_enabled === 'true',
+            text: backendData.header_newsbar_text || 'News, promotions, coupons, announcements are published on our news site - accsmarket.news',
+            backgroundColor: backendData.header_newsbar_bg_color || '#22c55e',
+            textColor: backendData.header_newsbar_text_color || '#ffffff',
+            newsUrl: backendData.header_newsbar_url || 'accsmarket.news'
+          },
+          logo: {
+            url: backendData.header_logo_url || '',
+            altText: backendData.header_logo_alt || 'AccsMarket',
+            logoText: backendData.header_logo_text || 'ACCS',
+            logoSuffix: backendData.header_logo_suffix || 'market.com'
+          },
+          navigation: JSON.parse(backendData.navigation_menu || '[{"id": 1, "label": "Home", "url": "/", "active": true}, {"id": 2, "label": "News", "url": "/news", "active": true}, {"id": 3, "label": "FAQ", "url": "/faq", "active": true}, {"id": 4, "label": "Terms of use", "url": "/terms", "active": true}]'),
+          search: {
+            enabled: backendData.search_enabled === 'true',
+            placeholder: backendData.search_placeholder || 'Search for accounts',
+            advancedSearchEnabled: backendData.search_advanced_enabled === 'true'
+          }
+        };
+        
+        setHeaderData(mappedData);
+        toast.success('Header settings loaded successfully');
+      } else {
+        toast.error('Failed to load header settings');
       }
     } catch (error) {
       console.error('Error fetching header data:', error);
+      toast.error('Error loading header settings');
     } finally {
       setLoading(false);
     }
@@ -57,19 +88,41 @@ const AdminHeader = () => {
   const saveHeaderData = async () => {
     setLoading(true);
     try {
+      // Map frontend data to backend structure
+      const backendData = {
+        header_newsbar_enabled: headerData.newsBar.enabled.toString(),
+        header_newsbar_text: headerData.newsBar.text,
+        header_newsbar_bg_color: headerData.newsBar.backgroundColor,
+        header_newsbar_text_color: headerData.newsBar.textColor,
+        header_newsbar_url: headerData.newsBar.newsUrl,
+        header_logo_url: headerData.logo.url,
+        header_logo_alt: headerData.logo.altText,
+        header_logo_text: headerData.logo.logoText,
+        header_logo_suffix: headerData.logo.logoSuffix,
+        navigation_menu: JSON.stringify(headerData.navigation),
+        search_placeholder: headerData.search.placeholder,
+        search_enabled: headerData.search.enabled.toString(),
+        search_advanced_enabled: headerData.search.advancedSearchEnabled.toString()
+      };
+      
       const response = await fetch('/api/admin/header', {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(headerData),
+        body: JSON.stringify(backendData),
       });
-      if (response.ok) {
-        alert('Header settings saved successfully!');
+      
+      const data = await response.json();
+      
+      if (data.success) {
+        toast.success('Header settings saved successfully!');
+      } else {
+        toast.error(data.message || 'Failed to save header settings');
       }
     } catch (error) {
       console.error('Error saving header data:', error);
-      alert('Error saving header settings');
+      toast.error('Error saving header settings');
     } finally {
       setLoading(false);
     }
@@ -117,7 +170,7 @@ const AdminHeader = () => {
         </div>
         <div className="flex gap-2">
           <Button variant="outline" onClick={fetchHeaderData} disabled={loading}>
-            <RefreshCw className="w-4 h-4 mr-2" />
+            <RefreshCw className={`w-4 h-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
             Refresh
           </Button>
           <Button onClick={saveHeaderData} disabled={loading}>
