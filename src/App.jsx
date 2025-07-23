@@ -1,10 +1,12 @@
 import { useState, useEffect } from 'react'
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
 import Header from './components/Header'
 import CategorySection from './components/CategorySection'
 import Footer from './components/Footer'
+import TermsOfUsePage from './pages/TermsOfUsePage'
 import './App.css'
 
-const API_BASE_URL = '/api'
+const API_BASE_URL = 'https://5000-iii9xt81ei0lfy1lok6zz-9f8c80f8.manusvm.computer/api'
 
 function App() {
   const [categories, setCategories] = useState([])
@@ -128,88 +130,97 @@ function App() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <Header />
-      
-      <main className="max-w-7xl mx-auto px-4 py-8">
-        {/* API Status Indicator */}
-        {error && (
-          <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6">
-            <div className="flex">
-              <div className="flex-shrink-0">
-                <svg className="h-5 w-5 text-yellow-400" viewBox="0 0 20 20" fill="currentColor">
-                  <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
-                </svg>
-              </div>
-              <div className="ml-3">
-                <p className="text-sm text-yellow-800">
-                  <strong>API Connection Issue:</strong> Using demo data. Backend: {error}
+    <Router>
+      <div className="min-h-screen bg-gray-50">
+        <Header />
+        
+        <Routes>
+          <Route path="/" element={
+            <main className="max-w-7xl mx-auto px-4 py-8">
+              {/* API Status Indicator */}
+              {error && (
+                <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6">
+                  <div className="flex">
+                    <div className="flex-shrink-0">
+                      <svg className="h-5 w-5 text-yellow-400" viewBox="0 0 20 20" fill="currentColor">
+                        <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                      </svg>
+                    </div>
+                    <div className="ml-3">
+                      <p className="text-sm text-yellow-800">
+                        <strong>API Connection Issue:</strong> Using demo data. Backend: {error}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Welcome Section */}
+              <div className="text-center mb-8">
+                <h1 className="text-3xl font-bold text-gray-900 mb-4">
+                  Buy or Sell Social Media Accounts
+                </h1>
+                <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+                  Your trusted marketplace for high-quality, verified social media accounts. 
+                  Browse our extensive collection of Facebook, Instagram, and other platform accounts.
                 </p>
               </div>
-            </div>
-          </div>
-        )}
 
-        {/* Welcome Section */}
-        <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-4">
-            Buy or Sell Social Media Accounts
-          </h1>
-          <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-            Your trusted marketplace for high-quality, verified social media accounts. 
-            Browse our extensive collection of Facebook, Instagram, and other platform accounts.
-          </p>
-        </div>
+              {/* Stats Section */}
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+                <div className="bg-white p-4 rounded-lg shadow-sm text-center">
+                  <div className="text-2xl font-bold text-green-600">
+                    {products.length}+
+                  </div>
+                  <div className="text-sm text-gray-600">Products Available</div>
+                </div>
+                <div className="bg-white p-4 rounded-lg shadow-sm text-center">
+                  <div className="text-2xl font-bold text-blue-600">24/7</div>
+                  <div className="text-sm text-gray-600">Support</div>
+                </div>
+                <div className="bg-white p-4 rounded-lg shadow-sm text-center">
+                  <div className="text-2xl font-bold text-purple-600">100%</div>
+                  <div className="text-sm text-gray-600">Secure</div>
+                </div>
+                <div className="bg-white p-4 rounded-lg shadow-sm text-center">
+                  <div className="text-2xl font-bold text-orange-600">Fast</div>
+                  <div className="text-sm text-gray-600">Delivery</div>
+                </div>
+              </div>
 
-        {/* Stats Section */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-          <div className="bg-white p-4 rounded-lg shadow-sm text-center">
-            <div className="text-2xl font-bold text-green-600">
-              {products.length}+
-            </div>
-            <div className="text-sm text-gray-600">Products Available</div>
-          </div>
-          <div className="bg-white p-4 rounded-lg shadow-sm text-center">
-            <div className="text-2xl font-bold text-blue-600">24/7</div>
-            <div className="text-sm text-gray-600">Support</div>
-          </div>
-          <div className="bg-white p-4 rounded-lg shadow-sm text-center">
-            <div className="text-2xl font-bold text-purple-600">100%</div>
-            <div className="text-sm text-gray-600">Secure</div>
-          </div>
-          <div className="bg-white p-4 rounded-lg shadow-sm text-center">
-            <div className="text-2xl font-bold text-orange-600">Fast</div>
-            <div className="text-sm text-gray-600">Delivery</div>
-          </div>
-        </div>
+              {/* Categories and Products */}
+              <div className="space-y-8">
+                {categories.map(category => {
+                  const categoryProducts = getCategoryWithProducts(category)
+                  if (categoryProducts.length === 0) return null
+                  
+                  return (
+                    <CategorySection
+                      key={category.id}
+                      category={category}
+                      products={categoryProducts}
+                    />
+                  )
+                })}
+              </div>
 
-        {/* Categories and Products */}
-        <div className="space-y-8">
-          {categories.map(category => {
-            const categoryProducts = getCategoryWithProducts(category)
-            if (categoryProducts.length === 0) return null
-            
-            return (
-              <CategorySection
-                key={category.id}
-                category={category}
-                products={categoryProducts}
-              />
-            )
-          })}
-        </div>
+              {/* No Products Message */}
+              {categories.length === 0 && (
+                <div className="text-center py-12">
+                  <p className="text-gray-500 text-lg">No categories available at the moment.</p>
+                </div>
+              )}
+            </main>
+          } />
+          <Route path="/pages/:slug" element={<TermsOfUsePage />} />
+        </Routes>
 
-        {/* No Products Message */}
-        {categories.length === 0 && (
-          <div className="text-center py-12">
-            <p className="text-gray-500 text-lg">No categories available at the moment.</p>
-          </div>
-        )}
-      </main>
-
-      <Footer />
-    </div>
+        <Footer />
+      </div>
+    </Router>
   )
 }
 
 export default App
+
+

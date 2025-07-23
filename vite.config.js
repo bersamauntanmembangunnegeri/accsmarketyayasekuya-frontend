@@ -14,6 +14,17 @@ export default defineConfig({
   server: {
     host: '0.0.0.0',
     port: 5173,
-    allowedHosts: ['all']
+    allowedHosts: ["5173-iii9xt81ei0lfy1lok6zz-9f8c80f8.manusvm.computer", "5174-iii9xt81ei0lfy1lok6zz-9f8c80f8.manusvm.computer"],
+    headers: {
+      'Cache-Control': 'no-store'
+    },
+    proxy: {
+      '/api': {
+        target: 'https://5000-iii9xt81ei0lfy1lok6zz-9f8c80f8.manusvm.computer',
+        changeOrigin: true,
+        secure: false,
+        rewrite: (path) => path.replace(/^\/api/, '')
+      }
+    }
   }
 })
