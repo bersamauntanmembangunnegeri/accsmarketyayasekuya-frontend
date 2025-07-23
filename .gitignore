@@ -4,3 +4,9 @@ node_modules/
 
 dist/assets/
 src/components/AdminPages.jsx
+
+
+node_modules/
+dist/
+
+
