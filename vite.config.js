@@ -20,10 +20,9 @@ export default defineConfig({
     },
     proxy: {
       '/api': {
-        target: 'https://5000-iii9xt81ei0lfy1lok6zz-9f8c80f8.manusvm.computer',
+        target: 'http://localhost:5000',
         changeOrigin: true,
-        secure: false,
-        rewrite: (path) => path.replace(/^\/api/, '')
+        secure: false
       }
     }
   }

@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Search, Menu, X, Globe, User } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -6,6 +6,64 @@ import { Input } from '@/components/ui/input'
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
+  const [headerSettings, setHeaderSettings] = useState({
+    header_logo_url: '',
+    header_logo_alt: 'AccsMarket',
+    navigation_menu: '[]',
+    search_placeholder: 'Search for accounts',
+    search_enabled: 'true'
+  })
+  const [menuItems, setMenuItems] = useState([])
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    loadHeaderSettings()
+  }, [])
+
+  const loadHeaderSettings = async () => {
+    try {
+      setLoading(true)
+      const response = await fetch('/api/admin/header')
+      const data = await response.json()
+      
+      if (data.success) {
+        setHeaderSettings(data.data)
+        // Parse navigation menu
+        try {
+          const parsedMenu = JSON.parse(data.data.navigation_menu || '[]')
+          setMenuItems(parsedMenu.filter(item => item.active !== false))
+        } catch (e) {
+          console.error('Error parsing navigation menu:', e)
+          // Fallback to default menu
+          setMenuItems([
+            { label: "Home", url: "/", active: true },
+            { label: "News", url: "/news", active: true },
+            { label: "FAQ", url: "/faq", active: true },
+            { label: "Terms of use", url: "/terms", active: true }
+          ])
+        }
+      } else {
+        // Use default settings if API fails
+        setMenuItems([
+          { label: "Home", url: "/", active: true },
+          { label: "News", url: "/news", active: true },
+          { label: "FAQ", url: "/faq", active: true },
+          { label: "Terms of use", url: "/terms", active: true }
+        ])
+      }
+    } catch (error) {
+      console.error('Error loading header settings:', error)
+      // Use default settings if API fails
+      setMenuItems([
+        { label: "Home", url: "/", active: true },
+        { label: "News", url: "/news", active: true },
+        { label: "FAQ", url: "/faq", active: true },
+        { label: "Terms of use", url: "/terms", active: true }
+      ])
+    } finally {
+      setLoading(false)
+    }
+  }
 
   return (
     <header className="bg-gray-800 text-white">
@@ -37,16 +95,37 @@ const Header = () => {
           <div className="flex items-center justify-between">
             {/* Logo */}
             <div className="flex items-center">
-              <div className="bg-red-600 text-white px-3 py-2 rounded font-bold text-xl">
-                ACCS
-              </div>
-              <span className="ml-2 text-xl font-semibold">market.com</span>
+              {headerSettings.header_logo_url ? (
+                <img 
+                  src={headerSettings.header_logo_url} 
+                  alt={headerSettings.header_logo_alt}
+                  className="h-10 w-auto object-contain"
+                />
+              ) : (
+                <div className="flex items-center">
+                  <div className="bg-red-600 text-white px-3 py-2 rounded font-bold text-xl">
+                    ACCS
+                  </div>
+                  <span className="ml-2 text-xl font-semibold">market.com</span>
+                </div>
+              )}
             </div>
 
             {/* Desktop Navigation */}
             <nav className="hidden md:flex items-center space-x-6">
               <a href="#" className="hover:text-green-400 transition-colors">🎫 New ticket / Ask a question</a>
-              <a href="#" className="hover:text-green-400 transition-colors">Home</a>
+              
+              {/* Dynamic Menu Items */}
+              {menuItems.map((item, index) => (
+                <a 
+                  key={index}
+                  href={item.url} 
+                  className="hover:text-green-400 transition-colors"
+                >
+                  {item.label}
+                </a>
+              ))}
+              
               <div className="relative group">
                 <button className="hover:text-green-400 transition-colors flex items-center">
                   Useful information
@@ -55,10 +134,14 @@ const Header = () => {
                   </svg>
                 </button>
               </div>
-              <a href="#" className="hover:text-green-400 transition-colors">FAQ</a>
-              <a href="#" className="hover:text-green-400 transition-colors">Terms of use</a>
+              
               <a href="#" className="bg-purple-600 hover:bg-purple-700 px-4 py-2 rounded transition-colors">
                 🌟 Become a seller
+              </a>
+              
+              {/* Admin Link */}
+              <a href="/admin" className="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded transition-colors">
+                ⚙️ Admin
               </a>
             </nav>
 
@@ -72,34 +155,36 @@ const Header = () => {
           </div>
 
           {/* Search Bar */}
-          <div className="mt-4 flex items-center space-x-4">
-            <div className="relative">
-              <Button 
-                variant="outline" 
-                className="bg-green-600 hover:bg-green-700 text-white border-green-600 min-w-[200px] justify-start"
-              >
-                📂 Select a category
-                <svg className="w-4 h-4 ml-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                </svg>
+          {headerSettings.search_enabled === 'true' && (
+            <div className="mt-4 flex items-center space-x-4">
+              <div className="relative">
+                <Button 
+                  variant="outline" 
+                  className="bg-green-600 hover:bg-green-700 text-white border-green-600 min-w-[200px] justify-start"
+                >
+                  📂 Select a category
+                  <svg className="w-4 h-4 ml-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                  </svg>
+                </Button>
+              </div>
+              
+              <div className="flex-1 relative">
+                <Input
+                  type="text"
+                  placeholder={headerSettings.search_placeholder}
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="w-full bg-white text-black"
+                />
+                <Search className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
+              </div>
+              
+              <Button className="bg-green-600 hover:bg-green-700 text-white">
+                🔍 Advanced search
               </Button>
             </div>
-            
-            <div className="flex-1 relative">
-              <Input
-                type="text"
-                placeholder="Search for accounts"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full bg-white text-black"
-              />
-              <Search className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
-            </div>
-            
-            <Button className="bg-green-600 hover:bg-green-700 text-white">
-              🔍 Advanced search
-            </Button>
-          </div>
+          )}
         </div>
       </div>
 
@@ -108,12 +193,24 @@ const Header = () => {
         <div className="md:hidden bg-gray-700 px-4 py-4">
           <nav className="flex flex-col space-y-3">
             <a href="#" className="hover:text-green-400 transition-colors">🎫 New ticket / Ask a question</a>
-            <a href="#" className="hover:text-green-400 transition-colors">Home</a>
+            
+            {/* Dynamic Menu Items for Mobile */}
+            {menuItems.map((item, index) => (
+              <a 
+                key={index}
+                href={item.url} 
+                className="hover:text-green-400 transition-colors"
+              >
+                {item.label}
+              </a>
+            ))}
+            
             <a href="#" className="hover:text-green-400 transition-colors">Useful information</a>
-            <a href="#" className="hover:text-green-400 transition-colors">FAQ</a>
-            <a href="#" className="hover:text-green-400 transition-colors">Terms of use</a>
             <a href="#" className="bg-purple-600 hover:bg-purple-700 px-4 py-2 rounded transition-colors text-center">
               🌟 Become a seller
+            </a>
+            <a href="/admin" className="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded transition-colors text-center">
+              ⚙️ Admin
             </a>
           </nav>
         </div>

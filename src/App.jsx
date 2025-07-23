@@ -4,9 +4,11 @@ import Header from './components/Header'
 import CategorySection from './components/CategorySection'
 import Footer from './components/Footer'
 import TermsOfUsePage from './pages/TermsOfUsePage'
+import AdminPage from './pages/AdminPage'
+import { Toaster } from 'sonner'
 import './App.css'
 
-const API_BASE_URL = 'https://5000-iii9xt81ei0lfy1lok6zz-9f8c80f8.manusvm.computer/api'
+const API_BASE_URL = '/api'
 
 function App() {
   const [categories, setCategories] = useState([])
@@ -212,10 +214,13 @@ function App() {
               )}
             </main>
           } />
+          <Route path="/admin" element={<AdminPage />} />
+          <Route path="/admin-panel" element={<AdminPage />} />
           <Route path="/pages/:slug" element={<TermsOfUsePage />} />
         </Routes>
 
         <Footer />
+        <Toaster position="top-right" />
       </div>
     </Router>
   )
