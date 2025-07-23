@@ -7,7 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Checkbox } from '@/components/ui/checkbox'
 import { Badge } from '@/components/ui/badge'
 
-const CheckoutModal = ({ isOpen, onClose, product }) => {
+const CheckoutModal = ({ isOpen, onClose, product, onOrderCreated }) => {
   const [formData, setFormData] = useState({
     email: '',
     quantity: 1,
@@ -95,8 +95,16 @@ const CheckoutModal = ({ isOpen, onClose, product }) => {
       newErrors.quantity = 'Quantity must be at least 1'
     }
     
+    if (selectedVendor && formData.quantity > selectedVendor.stock) {
+      newErrors.quantity = `Only ${selectedVendor.stock} items available in stock`
+    }
+    
     if (!selectedVendor) {
       newErrors.vendor = 'Please select a vendor'
+    }
+    
+    if (totalPrice < 12) {
+      newErrors.minPurchase = 'Minimum purchase amount is $12'
     }
     
     if (!formData.agreeTerms) {
@@ -117,24 +125,36 @@ const CheckoutModal = ({ isOpen, onClose, product }) => {
     setIsLoading(true)
     
     try {
-      // Mock API call
-      await new Promise(resolve => setTimeout(resolve, 2000))
+      // Create order in database
+      const orderData = {
+        product_id: product.id,
+        vendor_id: selectedVendor.id,
+        email: formData.email,
+        quantity: formData.quantity,
+        payment_method: formData.paymentMethod,
+        coupon_code: formData.couponCode,
+        total_price: totalPrice,
+        status: 'pending',
+        subscribe_newsletter: formData.subscribeNewsletter
+      }
       
-      // Show success message
-      alert('Order placed successfully!')
-      onClose()
-      
-      // Reset form
-      setFormData({
-        email: '',
-        quantity: 1,
-        paymentMethod: 'USDT TRC20 (min.$12)',
-        couponCode: '',
-        agreeTerms: false,
-        subscribeNewsletter: false
+      const response = await fetch('/api/orders', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(orderData)
       })
+      
+      if (response.ok) {
+        const order = await response.json()
+        // Show order details instead of closing modal
+        onOrderCreated(order)
+      } else {
+        throw new Error('Failed to create order')
+      }
     } catch (error) {
-      alert('Error placing order. Please try again.')
+      alert('Error creating order. Please try again.')
     } finally {
       setIsLoading(false)
     }
@@ -159,8 +179,16 @@ const CheckoutModal = ({ isOpen, onClose, product }) => {
         {/* Product Info */}
         <div className="p-4 bg-gray-50 border-b">
           <p className="text-sm text-gray-600 mb-2">{product?.name}</p>
-          <div className="text-xs text-gray-500">
+          <div className="text-xs text-gray-500 mb-2">
             Male or female. The account profiles may be empty or have limited entries such as photos and other information. 2FA included. Cookies are included. Accounts are registered in United Kingdom IP.
+          </div>
+          <div className="bg-blue-50 border border-blue-200 rounded p-2">
+            <div className="flex items-center space-x-1">
+              <AlertCircle size={14} className="text-blue-600" />
+              <span className="text-xs text-blue-700 font-medium">
+                Minimum purchase requirement: $12.00
+              </span>
+            </div>
           </div>
         </div>
 
@@ -236,10 +264,16 @@ const CheckoutModal = ({ isOpen, onClose, product }) => {
                   id="quantity"
                   type="number"
                   min="1"
+                  max={selectedVendor?.stock || 999}
                   value={formData.quantity}
                   onChange={(e) => handleInputChange('quantity', parseInt(e.target.value) || 1)}
                   className={errors.quantity ? 'border-red-500' : ''}
                 />
+                {selectedVendor && totalPrice < 12 && (
+                  <div className="mt-1 text-xs text-amber-600">
+                    💡 Suggested quantity to meet minimum: {Math.ceil(12 / selectedVendor.price)} items (${(Math.ceil(12 / selectedVendor.price) * selectedVendor.price).toFixed(3)})
+                  </div>
+                )}
                 {errors.quantity && (
                   <p className="text-red-500 text-xs mt-1">{errors.quantity}</p>
                 )}
@@ -281,16 +315,53 @@ const CheckoutModal = ({ isOpen, onClose, product }) => {
 
               {/* Price */}
               <div className="bg-gray-50 p-3 rounded-lg">
-                <div className="flex justify-between items-center">
-                  <span className="font-medium">Price</span>
-                  <span className="text-lg font-bold text-green-600">
+                <div className="flex justify-between items-center mb-2">
+                  <span className="font-medium">Total Price</span>
+                  <span className={`text-lg font-bold ${totalPrice >= 12 ? 'text-green-600' : 'text-red-600'}`}>
                     ${totalPrice.toFixed(3)}
                   </span>
                 </div>
+                
+                {/* Minimum purchase progress */}
+                <div className="mb-2">
+                  <div className="flex justify-between text-xs text-gray-600 mb-1">
+                    <span>Progress to minimum ($12.00)</span>
+                    <span>{Math.min(100, (totalPrice / 12 * 100)).toFixed(0)}%</span>
+                  </div>
+                  <div className="w-full bg-gray-200 rounded-full h-2">
+                    <div 
+                      className={`h-2 rounded-full transition-all duration-300 ${
+                        totalPrice >= 12 ? 'bg-green-500' : 'bg-red-400'
+                      }`}
+                      style={{ width: `${Math.min(100, (totalPrice / 12 * 100))}%` }}
+                    ></div>
+                  </div>
+                </div>
+                
                 {totalPrice < 12 && (
-                  <p className="text-red-500 text-xs mt-1">
-                    (!) - min sum - $12
-                  </p>
+                  <div className="bg-red-50 border border-red-200 rounded p-2">
+                    <div className="flex items-center space-x-1">
+                      <AlertCircle size={14} className="text-red-600" />
+                      <span className="text-red-600 text-xs font-medium">
+                        Need ${(12 - totalPrice).toFixed(3)} more to meet minimum purchase
+                      </span>
+                    </div>
+                  </div>
+                )}
+                
+                {totalPrice >= 12 && (
+                  <div className="bg-green-50 border border-green-200 rounded p-2">
+                    <div className="flex items-center space-x-1">
+                      <Check size={14} className="text-green-600" />
+                      <span className="text-green-600 text-xs font-medium">
+                        Minimum purchase requirement met ✓
+                      </span>
+                    </div>
+                  </div>
+                )}
+                
+                {errors.minPurchase && (
+                  <p className="text-red-500 text-xs mt-2">{errors.minPurchase}</p>
                 )}
               </div>
 
@@ -330,11 +401,32 @@ const CheckoutModal = ({ isOpen, onClose, product }) => {
           {/* Submit Button */}
           <Button 
             type="submit" 
-            className="w-full bg-green-600 hover:bg-green-700 text-white"
-            disabled={isLoading || totalPrice < 12}
+            className={`w-full text-white transition-all duration-200 ${
+              totalPrice >= 12 && !isLoading
+                ? 'bg-green-600 hover:bg-green-700' 
+                : 'bg-gray-400 cursor-not-allowed'
+            }`}
+            disabled={isLoading || totalPrice < 12 || !formData.agreeTerms}
           >
-            {isLoading ? 'Processing...' : 'Proceed to payment'}
+            {isLoading ? (
+              <div className="flex items-center space-x-2">
+                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                <span>Processing...</span>
+              </div>
+            ) : totalPrice < 12 ? (
+              `Need $${(12 - totalPrice).toFixed(3)} more to proceed`
+            ) : !formData.agreeTerms ? (
+              'Please agree to terms to proceed'
+            ) : (
+              'Order'
+            )}
           </Button>
+          
+          {totalPrice < 12 && (
+            <p className="text-center text-xs text-gray-500 mt-2">
+              Increase quantity or add more items to meet the minimum purchase requirement
+            </p>
+          )}
         </form>
       </div>
     </div>

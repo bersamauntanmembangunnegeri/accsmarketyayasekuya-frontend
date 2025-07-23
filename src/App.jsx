@@ -5,6 +5,7 @@ import CategorySection from './components/CategorySection'
 import Footer from './components/Footer'
 import TermsOfUsePage from './pages/TermsOfUsePage'
 import AdminPage from './pages/AdminPage'
+import FAQPage from './pages/FAQPage'
 import { Toaster } from 'sonner'
 import './App.css'
 
@@ -216,6 +217,7 @@ function App() {
           } />
           <Route path="/admin" element={<AdminPage />} />
           <Route path="/admin-panel" element={<AdminPage />} />
+          <Route path="/faq" element={<FAQPage />} />
           <Route path="/pages/:slug" element={<TermsOfUsePage />} />
         </Routes>
 

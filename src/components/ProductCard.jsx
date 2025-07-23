@@ -3,9 +3,28 @@ import { Star, Clock, TrendingUp, ShoppingCart } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import CheckoutModal from './CheckoutModal'
+import OrderDetailsModal from './OrderDetailsModal'
 
 const ProductCard = ({ product }) => {
-  const [isModalOpen, setIsModalOpen] = useState(false)
+  const [isCheckoutModalOpen, setIsCheckoutModalOpen] = useState(false)
+  const [isOrderDetailsModalOpen, setIsOrderDetailsModalOpen] = useState(false)
+  const [currentOrder, setCurrentOrder] = useState(null)
+
+  const handleOrderCreated = (order) => {
+    setCurrentOrder(order)
+    setIsCheckoutModalOpen(false)
+    setIsOrderDetailsModalOpen(true)
+  }
+
+  const handleContinueToPayment = async (order) => {
+    // Here you would integrate with your payment gateway
+    // For now, we'll just show an alert
+    alert(`Redirecting to payment gateway for order #${order.id}...`)
+    
+    // Close the order details modal
+    setIsOrderDetailsModalOpen(false)
+    setCurrentOrder(null)
+  }
 
   const formatPrice = (price) => {
     return `From $${parseFloat(price).toFixed(3)}`
@@ -93,7 +112,7 @@ const ProductCard = ({ product }) => {
 
         {/* Buy Button */}
         <Button 
-          onClick={() => setIsModalOpen(true)}
+          onClick={() => setIsCheckoutModalOpen(true)}
           className="w-full bg-green-600 hover:bg-green-700 text-white"
           disabled={product.stock_quantity === 0}
         >
@@ -104,9 +123,21 @@ const ProductCard = ({ product }) => {
 
       {/* Checkout Modal */}
       <CheckoutModal 
-        isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
+        isOpen={isCheckoutModalOpen}
+        onClose={() => setIsCheckoutModalOpen(false)}
         product={product}
+        onOrderCreated={handleOrderCreated}
+      />
+
+      {/* Order Details Modal */}
+      <OrderDetailsModal 
+        isOpen={isOrderDetailsModalOpen}
+        onClose={() => {
+          setIsOrderDetailsModalOpen(false)
+          setCurrentOrder(null)
+        }}
+        order={currentOrder}
+        onContinueToPayment={handleContinueToPayment}
       />
     </>
   )
