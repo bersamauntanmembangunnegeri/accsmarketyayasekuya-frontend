@@ -147,11 +147,16 @@ const CheckoutModal = ({ isOpen, onClose, product, onOrderCreated }) => {
       })
       
       if (response.ok) {
-        const order = await response.json()
+        const result = await response.json()
         // Show order details instead of closing modal
-        onOrderCreated(order)
+        if (result.success && result.data) {
+          onOrderCreated(result.data)
+        } else {
+          throw new Error(result.message || 'Failed to create order')
+        }
       } else {
-        throw new Error('Failed to create order')
+        const errorResult = await response.json()
+        throw new Error(errorResult.message || 'Failed to create order')
       }
     } catch (error) {
       alert('Error creating order. Please try again.')
