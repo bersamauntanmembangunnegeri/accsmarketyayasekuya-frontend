@@ -4,7 +4,7 @@ import CategorySection from './components/CategorySection'
 import Footer from './components/Footer'
 import './App.css'
 
-const API_BASE_URL = 'https://e5h6i7cnzdoe.manus.space/api'
+const API_BASE_URL = '/api'
 
 function App() {
   const [categories, setCategories] = useState([])
